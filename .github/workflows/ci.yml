@@ -22,22 +22,23 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-      - name: Test echo env var
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        run: echo $AWS_ACCESS_KEY_ID
-
-      # Runs a single command using the runners shell
       - name: Login to ECR
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 187356949466.dkr.ecr.us-east-1.amazonaws.com
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: build docker image
+        run: docker build -t chiwenchen/play_js:`git rev-parse --short=7 HEAD` .
+
+      - name: Tag image
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          docker tag chiwenchen/play_js:`git rev-parse --short=7 HEAD` 187356949466.dkr.ecr.us-east-1.amazonaws.com/play_js:`git rev-parse --short=7 HEAD`
+          docker tag chiwenchen/play_js:`git rev-parse --short=7 HEAD` 187356949466.dkr.ecr.us-east-1.amazonaws.com/play_js:latest
+
+      - name: Push to ECR
+        run: |
+          docker push 187356949466.dkr.ecr.us-east-1.amazonaws.com/play_js:`git rev-parse --short=7 HEAD`
+          docker push 187356949466.dkr.ecr.us-east-1.amazonaws.com/play_js:latest
+          
